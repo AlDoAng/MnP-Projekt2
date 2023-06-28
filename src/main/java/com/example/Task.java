@@ -5,6 +5,7 @@ import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Receive;
 
 import java.util.List;
+import java.util.Random;
 
 public class Task extends AbstractBehavior<Task.Message> {
 
@@ -19,6 +20,14 @@ public class Task extends AbstractBehavior<Task.Message> {
 
     public List<Integer> getNumbers() {
         return numbers;
+    }
+    public void createList() {
+        Random random = new Random(System.currentTimeMillis());
+        int randomLength = random.nextInt(10 - 4 +1) + 4;
+        for (int i = 0; i<randomLength; i++){
+            int randomElement = random.nextInt(6-1+1)+1;
+            numbers.add(randomElement);
+        }
     }
 
     @Override
