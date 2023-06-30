@@ -26,10 +26,15 @@ public class AkkaMainSystem extends AbstractBehavior<AkkaMainSystem.Create> {
     private Behavior<Create> onCreate(Create command) {
         //#create-actors
         ActorRef<Queue.Message> queue = this.getContext().spawn(Queue.create(), "queue");
-        ActorRef<Scheduler.Message> scheduler = this.getContext().spawn(Scheduler.create(), "scheduelr");
-        for (int i = 0; i < 20; i++) {
-            ActorRef<Task.Message> task = this.getContext().spawn(Task.create(scheduler, queue), "task "+i);
+        ActorRef<Scheduler.Message> scheduler = this.getContext().spawn(Scheduler.create(queue), "scheduler");
+
+        for (int i = 0; i < 5; i++) {
+            ActorRef<Task.Message> task = this.getContext().spawn(Task.create(scheduler, queue, i+1), "task_" + (i+1));
+            queue.tell(new Queue.AddTask(task));
         }
+
+
+        scheduler.tell(new Scheduler.StartProgram());
 
         //#create-actors
         return this;

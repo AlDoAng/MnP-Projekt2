@@ -12,14 +12,14 @@ import java.util.List;
 
 class Worker extends AbstractBehavior<Worker.Message> {
 
-    public interface Message {};
-    public record Calculate(ActorRef<Task.Message> replyTo, int number, int index, int action, boolean lastElement, List<Integer> list) implements Message {};
-    private int number;
-    private int action;
-    private int index;
-    private boolean lastElement;
-    private List<Integer> listNumbers;
-    private ActorRef<Task.Message> replyTo;
+    public interface Message {}
+    public record Calculate(ActorRef<Task.Message> replyTo, int number, int index, int action, boolean lastElement, List<Integer> list) implements Message {}
+    private final int number;
+    private final int action;
+    private final int index;
+    private final boolean lastElement;
+    private final List<Integer> listNumbers;
+    private final ActorRef<Task.Message> replyTo;
 
     private Worker(ActorContext<Message> context, ActorRef<Task.Message> actorRef, int number, int index, int action, boolean lastElement, List<Integer> list) {
         super(context);
@@ -29,6 +29,7 @@ class Worker extends AbstractBehavior<Worker.Message> {
         this.replyTo = actorRef;
         this.lastElement = lastElement;
         this.listNumbers = list;
+
         this.getContext().getSelf().tell(new Worker.Calculate(replyTo,number,index,action,lastElement,list));
     }
 
