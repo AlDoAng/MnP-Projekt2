@@ -42,17 +42,18 @@ public class Queue extends AbstractBehavior<Queue.Message> {
 
     public Behavior<Message> onGetFirstTask(GetFirstTask msg){
         ActorRef<Task.Message> firstTaskInQueue = this.taskQueue.peek();
-        this.getContext().getLog().info("Task " + firstTaskInQueue+ " is first in queue");
         if (firstTaskInQueue == null){
             msg.replyTo.tell(new Scheduler.NoElementInQueue(this.getContext().getSelf()));
+            return Behaviors.stopped();
         }else{
-            msg.replyTo.tell(new Scheduler.FirstTaskInQueue(this.getContext().getSelf(), firstTaskInQueue));
+            msg.replyTo.tell(new Scheduler.FirstTaskInQueue(this.getContext().getSelf(), firstTaskInQueue, this.taskQueue.size()-1));
         }
         return this;
     }
 
     public Behavior<Message> onRemoveFirstTask(RemoveFirstTask msg){
         this.getContext().getLog().info("Task "+msg.removeTask+" removed from queue");
+        msg.replyTo.tell(new Scheduler.StartProgram());
         this.taskQueue.remove(msg.removeTask);
         return this;
     }

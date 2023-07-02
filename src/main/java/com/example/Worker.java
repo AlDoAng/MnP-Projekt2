@@ -14,27 +14,14 @@ class Worker extends AbstractBehavior<Worker.Message> {
 
     public interface Message {}
     public record Calculate(ActorRef<Task.Message> replyTo, int number, int index, int action, boolean lastElement, List<Integer> list) implements Message {}
-    private final int number;
-    private final int action;
-    private final int index;
-    private final boolean lastElement;
-    private final List<Integer> listNumbers;
-    private final ActorRef<Task.Message> replyTo;
 
-    private Worker(ActorContext<Message> context, ActorRef<Task.Message> actorRef, int number, int index, int action, boolean lastElement, List<Integer> list) {
+
+    private Worker(ActorContext<Message> context) {
         super(context);
-        this.action = action;
-        this.number = number;
-        this.index = index;
-        this.replyTo = actorRef;
-        this.lastElement = lastElement;
-        this.listNumbers = list;
-
-        this.getContext().getSelf().tell(new Worker.Calculate(replyTo,number,index,action,lastElement,list));
     }
 
-    public static Behavior<Message> create(ActorRef<Task.Message> actorRef,int number, int index,int action, boolean lastElement, List<Integer> list) {
-        return Behaviors.setup(context -> new Worker(context, actorRef, number, index,action, lastElement, list));
+    public static Behavior<Message> create() {
+        return Behaviors.setup(Worker::new);
     }
 
     @Override
@@ -47,13 +34,13 @@ class Worker extends AbstractBehavior<Worker.Message> {
     private  Behavior<Message> onCalculate(Calculate msg) {
         if (msg.action == 0) {
             int res = msg.number + 1;
-            replyTo.tell(new Task.CalcResult(getContext().getSelf(), res, msg.index, msg.action, msg.lastElement));
+            msg.replyTo.tell(new Task.CalcResult(getContext().getSelf(), res, msg.index, msg.action, msg.lastElement));
         } else{
             int res = 1;
             for (int i = 0; i < msg.list.size(); i++) {
                 res = res * msg.list.get(i);
             }
-            replyTo.tell(new Task.FinalResult(this.getContext().getSelf(),res));
+            msg.replyTo.tell(new Task.FinalResult(this.getContext().getSelf(),res));
         }
         return Behaviors.stopped();
     }

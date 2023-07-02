@@ -1,6 +1,5 @@
 package com.example;
 
-import akka.actor.Actor;
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.*;
@@ -26,7 +25,7 @@ public class AkkaMainSystem extends AbstractBehavior<AkkaMainSystem.Create> {
     private Behavior<Create> onCreate(Create command) {
         //#create-actors
         ActorRef<Queue.Message> queue = this.getContext().spawn(Queue.create(), "queue");
-        ActorRef<Scheduler.Message> scheduler = this.getContext().spawn(Scheduler.create(queue), "scheduler");
+        ActorRef<Scheduler.Message> scheduler = this.getContext().spawn(Scheduler.create(queue ), "scheduler");
 
         for (int i = 0; i < 5; i++) {
             ActorRef<Task.Message> task = this.getContext().spawn(Task.create(scheduler, queue, i+1), "task_" + (i+1));

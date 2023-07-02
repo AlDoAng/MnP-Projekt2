@@ -2,7 +2,6 @@ package com.example;
 
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
-import akka.actor.typed.delivery.DurableProducerQueue;
 import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
@@ -11,10 +10,10 @@ import akka.actor.typed.javadsl.Receive;
 public class Scheduler extends AbstractBehavior<Scheduler.Message>{
 
     public interface Message {}
-    public record TaskEnde(ActorRef<Task.Message> replyTo, int numberWorkersFree) implements Message{}
+    public record TaskEnde(ActorRef<Task.Message> replyTo, int numberWorkersFree, int queueSize) implements Message{}
     public record StartProgram() implements Message{}
     public record NoElementInQueue(ActorRef<Queue.Message> msgFrom) implements Message {}
-    public record FirstTaskInQueue(ActorRef<Queue.Message> msgFrom, ActorRef<Task.Message> firstTaskInQueue) implements Message {}
+    public record FirstTaskInQueue(ActorRef<Queue.Message> msgFrom, ActorRef<Task.Message> firstTaskInQueue, int queueSize) implements Message {}
     public record TaskIsStarted(ActorRef<Task.Message> repplyTo, int numberWorkers) implements Message {}
     //enthält Tasks, wenn es mehr als 20 Workers laufen
 
@@ -45,33 +44,39 @@ public class Scheduler extends AbstractBehavior<Scheduler.Message>{
                 .build();
     }
 
-    private  Behavior<Message> onTaskEnde(TaskEnde msg) {
+    private Behavior<Message> onTaskEnde(TaskEnde msg) {
         this.freeWorkers += msg.numberWorkersFree;
-        this.getContext().getSelf().tell(new Scheduler.StartProgram());
+        if (msg.queueSize == 0){
+            this.getContext().getLog().info("All tasks were calculated. Press ENTER to exit");
+            return Behaviors.stopped();
+        }
+//        this.getContext().getSelf().tell(new Scheduler.StartProgram());
         return this;
     }
 
 
     private  Behavior<Message> onStartProgram(StartProgram msg){
         this.queueActorRef.tell(new Queue.GetFirstTask(this.getContext().getSelf()));
+
         return this;
     }
 
     private  Behavior<Message> onNoElementInQueue(NoElementInQueue msg){
         //TODO: stop the program cause no elements left
         return this;
+
     }
 
     private  Behavior<Message> onFirstTaskInQueue(FirstTaskInQueue msg){
-        msg.firstTaskInQueue.tell(new Task.TryToStart(this.getContext().getSelf(), freeWorkers));
+        msg.firstTaskInQueue.tell(new Task.TryToStart(this.getContext().getSelf(), freeWorkers, msg.queueSize));
         return this;
     }
 
     private Behavior<Message> onTaskIsStarted(TaskIsStarted msg){
         this.freeWorkers = freeWorkers - msg.numberWorkers;
         this.queueActorRef.tell(new Queue.RemoveFirstTask(this.getContext().getSelf(), msg.repplyTo));
-        if (freeWorkers > 0)
-            this.getContext().getSelf().tell(new Scheduler.StartProgram());
+//        if (this.freeWorkers > 0)
+//            this.getContext().getSelf().tell(new Scheduler.StartProgram());
         return this;
     }
 }
