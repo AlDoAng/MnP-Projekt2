@@ -1,9 +1,11 @@
 package com.example;
 
 import akka.actor.typed.ActorSystem;
+import akka.actor.typed.Behavior;
 
 import java.io.IOException;
 public class AkkaStart {
+
   public static void main(String[] args) {
     final ActorSystem<AkkaMainSystem.Create> messageMain = ActorSystem.create(AkkaMainSystem.create(), "akkaMainSystem");
 
@@ -17,4 +19,5 @@ public class AkkaStart {
       messageMain.terminate();
     }
   }
+
 }
