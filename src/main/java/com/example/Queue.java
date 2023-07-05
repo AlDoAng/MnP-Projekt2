@@ -35,7 +35,6 @@ public class Queue extends AbstractBehavior<Queue.Message> {
     }
 
     public Behavior<Message> onAddTask(AddTask msg){
-        this.getContext().getLog().info("Task added " + msg.replyTo);
         taskQueue.add(msg.replyTo);
         return this;
     }
@@ -46,13 +45,12 @@ public class Queue extends AbstractBehavior<Queue.Message> {
             msg.replyTo.tell(new Scheduler.NoElementInQueue(this.getContext().getSelf()));
             return Behaviors.stopped();
         }else{
-            msg.replyTo.tell(new Scheduler.FirstTaskInQueue(this.getContext().getSelf(), firstTaskInQueue, this.taskQueue.size()-1));
+            msg.replyTo.tell(new Scheduler.FirstTaskInQueue(this.getContext().getSelf(), firstTaskInQueue));
         }
         return this;
     }
 
     public Behavior<Message> onRemoveFirstTask(RemoveFirstTask msg){
-        this.getContext().getLog().info("Task "+msg.removeTask+" removed from queue");
         msg.replyTo.tell(new Scheduler.StartProgram());
         this.taskQueue.remove(msg.removeTask);
         return this;
