@@ -10,10 +10,10 @@ import akka.actor.typed.javadsl.Receive;
 public class Scheduler extends AbstractBehavior<Scheduler.Message>{
 
     public interface Message {}
-    public record TaskEnde(ActorRef<Task.Message> replyTo, int numberWorkersFree, int queueSize) implements Message{}
+    public record TaskEnde(ActorRef<Task.Message> replyTo, int numberWorkersFree) implements Message{}
     public record StartProgram() implements Message{}
     public record NoElementInQueue(ActorRef<Queue.Message> msgFrom) implements Message {}
-    public record FirstTaskInQueue(ActorRef<Queue.Message> msgFrom, ActorRef<Task.Message> firstTaskInQueue, int queueSize) implements Message {}
+    public record FirstTaskInQueue(ActorRef<Queue.Message> msgFrom, ActorRef<Task.Message> firstTaskInQueue) implements Message {}
     public record TaskIsStarted(ActorRef<Task.Message> repplyTo, int numberWorkers) implements Message {}
     //enthält Tasks, wenn es mehr als 20 Workers laufen
 
@@ -21,6 +21,7 @@ public class Scheduler extends AbstractBehavior<Scheduler.Message>{
     private final int maxWorkers = 20;
     private int freeWorkers = 20;
     private final ActorRef<Queue.Message> queueActorRef;
+    private int numberCalculatedWorkers = 0;
 
 
     private Scheduler(ActorContext<Message> context, ActorRef<Queue.Message> queue) {
@@ -45,12 +46,12 @@ public class Scheduler extends AbstractBehavior<Scheduler.Message>{
     }
 
     private Behavior<Message> onTaskEnde(TaskEnde msg) {
+        this.numberCalculatedWorkers += 1;
         this.freeWorkers += msg.numberWorkersFree;
-        if (msg.queueSize == 0){
+        if (numberCalculatedWorkers == 20){
             this.getContext().getLog().info("All tasks were calculated. Press ENTER to exit");
-            return Behaviors.stopped();
+            //return Behaviors.stopped();
         }
-//        this.getContext().getSelf().tell(new Scheduler.StartProgram());
         return this;
     }
 
@@ -68,7 +69,7 @@ public class Scheduler extends AbstractBehavior<Scheduler.Message>{
     }
 
     private  Behavior<Message> onFirstTaskInQueue(FirstTaskInQueue msg){
-        msg.firstTaskInQueue.tell(new Task.TryToStart(this.getContext().getSelf(), freeWorkers, msg.queueSize));
+        msg.firstTaskInQueue.tell(new Task.TryToStart(this.getContext().getSelf(), freeWorkers));
         return this;
     }
 

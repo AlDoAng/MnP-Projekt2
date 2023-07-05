@@ -17,13 +17,12 @@ public class Task extends AbstractBehavior<Task.Message> {
 
     public record CalcResult(ActorRef<Worker.Message> worker, int result, int index, int action, boolean lastElement) implements  Message{}
     public record FinalResult(ActorRef<Worker.Message> worker, int result) implements Message {}
-    public record TryToStart(ActorRef<Scheduler.Message> replyTo, int numberOfFreeWorkers, int queueSize) implements Message {}
+    public record TryToStart(ActorRef<Scheduler.Message> replyTo, int numberOfFreeWorkers) implements Message {}
     private ArrayList<Integer> numbers;
     private final ActorRef<Scheduler.Message> scheduler;
     private final ActorRef<Queue.Message> queueActorRef;
     private int result;
     private final int taskNumber;
-    private int queueSizeAfter;
 
     public static Behavior<Message> create(ActorRef<Scheduler.Message> schedulerActorRef, ActorRef<Queue.Message> queue, int taskNumber){
         return Behaviors.setup(context -> new Task(context, schedulerActorRef, queue, taskNumber));
@@ -36,7 +35,6 @@ public class Task extends AbstractBehavior<Task.Message> {
         this.scheduler = scheduler;
         this.queueActorRef = queue;
         this.taskNumber = taskNumber;
-        this.queueSizeAfter = 0;
     }
 
     public ArrayList<Integer> getNumbers() {
@@ -65,7 +63,7 @@ public class Task extends AbstractBehavior<Task.Message> {
     private Behavior<Message> onFinalResult(FinalResult msg) {
         this.result = msg.result;
         this.getContext().getLog().info("Task" + this.taskNumber + " result: " + result);
-        this.scheduler.tell(new Scheduler.TaskEnde(this.getContext().getSelf(), this.numbers.size() + 1, queueSizeAfter));
+        this.scheduler.tell(new Scheduler.TaskEnde(this.getContext().getSelf(), this.numbers.size() + 1));
         return Behaviors.stopped();
     }
 
@@ -83,7 +81,6 @@ public class Task extends AbstractBehavior<Task.Message> {
 
     private Behavior<Message> onTryToStart(TryToStart msg){
         if (msg.numberOfFreeWorkers >= this.numbers.size() + 1){
-            queueSizeAfter = msg.queueSize;
             msg.replyTo.tell(new Scheduler.TaskIsStarted(this.getContext().getSelf(), this.numbers.size() + 1));
             int size = this.numbers.size();
             this.getContext().getLog().info("Task number " + taskNumber+" started calculation");
