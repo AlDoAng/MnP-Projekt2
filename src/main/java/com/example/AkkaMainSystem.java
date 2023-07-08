@@ -3,10 +3,18 @@ package com.example;
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.*;
+
+/*
+Alina Ignatova 226735,
+Ha Phuong Ta 230655,
+Valeriya Mikhalskaya 229099,
+Janis Melon 209928
+*/
+
 /*
  * Klasse: AkkaMainSystem
  * Initialisierung der nötigen Aktoren: 1 Queue, 1 Scheduler und 20 Tasks
- * */
+ */
 public class AkkaMainSystem extends AbstractBehavior<AkkaMainSystem.Create> {
 
     public static class Create {

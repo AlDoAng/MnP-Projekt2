@@ -10,11 +10,20 @@ import akka.actor.typed.javadsl.Receive;
 
 import java.util.ArrayList;
 import java.util.Random;
+/*
+Alina Ignatova 226735,
+Ha Phuong Ta 230655,
+Valeriya Mikhalskaya 229099,
+Janis Melon 209928
+*/
 
+/*
+ * Klasse: Task
+ * Es wird eine Anzahl an Workern am Scheduler beantragt
+ */
 public class Task extends AbstractBehavior<Task.Message> {
 
     public interface Message {}
-
     public record CalcResult(ActorRef<Worker.Message> worker, int result, int index, int action, boolean lastElement) implements  Message{}
     public record FinalResult(ActorRef<Worker.Message> worker, int result) implements Message {}
     public record TryToStart(ActorRef<Scheduler.Message> replyTo, int numberOfFreeWorkers) implements Message {}
@@ -37,9 +46,12 @@ public class Task extends AbstractBehavior<Task.Message> {
         this.taskNumber = taskNumber;
     }
 
+    //eine Get-Funktion
     public ArrayList<Integer> getNumbers() {
         return numbers;
     }
+
+    // Funktion: es wird eine Liste zufälligen Integern zwischen 1 und 6 (einschließlich) erstellt
     public ArrayList<Integer> createList() {
         Random random = new Random(System.currentTimeMillis());
         int randomLength = random.nextInt(10 - 4 +1) + 4;
@@ -60,6 +72,8 @@ public class Task extends AbstractBehavior<Task.Message> {
                 .build();
     }
 
+    // Funktion: die Funktion wird aufgerufen, wenn alle Berechnungen abgeschlossen sind,
+    // das Ergebnis wird ausgegeben und der Task beendet sich
     private Behavior<Message> onFinalResult(FinalResult msg) {
         this.result = msg.result;
         this.getContext().getLog().info("Task" + this.taskNumber + " result: " + result);
@@ -67,6 +81,7 @@ public class Task extends AbstractBehavior<Task.Message> {
         return Behaviors.stopped();
     }
 
+    // Funktion: diese Methode ist eine Zwischenmethode und dient als Verwalter für Aktionen
     private Behavior<Message> onCalcResult(CalcResult msg) {
         if (msg.action == 0){
             this.numbers.set(msg.index, msg.result);
@@ -79,6 +94,8 @@ public class Task extends AbstractBehavior<Task.Message> {
         return this;
     }
 
+    // Funktion: die Methode wird aufgerufen, wenn der Task gestartet wird.
+    // Wenn es freie Workers gibt, wird der Scheduler informiert und die Workers werden erstellt
     private Behavior<Message> onTryToStart(TryToStart msg){
         if (msg.numberOfFreeWorkers >= this.numbers.size() + 1){
             msg.replyTo.tell(new Scheduler.TaskIsStarted(this.getContext().getSelf(), this.numbers.size() + 1));

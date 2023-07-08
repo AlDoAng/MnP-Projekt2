@@ -9,9 +9,25 @@ import akka.actor.typed.javadsl.Receive;
 
 import java.util.List;
 
+/*
+Alina Ignatova 226735,
+Ha Phuong Ta 230655,
+Valeriya Mikhalskaya 229099,
+Janis Melon 209928
+*/
+
+/*
+ * Klasse: Worker
+ * führt Berechnungen mit der Liste durch, die vom Task beantragt wird
+ */
 class Worker extends AbstractBehavior<Worker.Message> {
 
     public interface Message {}
+
+    /*
+     * Nachrichten mit deren entsprechenden Funktionalitäten
+     * Calculate Nachricht: liefert eine Referenz auf den Task und die Berechnungsvariablen
+     */
     public record Calculate(ActorRef<Task.Message> replyTo, int number, int index, int action, boolean lastElement, List<Integer> list) implements Message {}
 
 
@@ -30,6 +46,8 @@ class Worker extends AbstractBehavior<Worker.Message> {
                 .build();
     }
 
+    // Funktion: hier wird die Inkrementierung um 1, falls msg.action == 0 durchgeführt
+    // andernfalls die Multiplizierung aller Elemente
     private  Behavior<Message> onCalculate(Calculate msg) {
         if (msg.action == 0) {
             int res = msg.number + 1;

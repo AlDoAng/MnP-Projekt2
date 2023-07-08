@@ -9,6 +9,13 @@ import akka.actor.typed.javadsl.Receive;
 
 import java.util.LinkedList;
 /*
+Alina Ignatova 226735,
+Ha Phuong Ta 230655,
+Valeriya Mikhalskaya 229099,
+Janis Melon 209928
+*/
+
+/*
  * Klasse: Queue
  * Eine Warteschlange für alle Tasks. Direkt nach der Erstellung eines Task wird dieser Task
  * direkt in die Schlange hinzugefügt und nacheinander abarbeitet

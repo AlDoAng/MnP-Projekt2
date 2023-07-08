@@ -8,6 +8,13 @@ import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 
 /*
+Alina Ignatova 226735,
+Ha Phuong Ta 230655,
+Valeriya Mikhalskaya 229099,
+Janis Melon 209928
+*/
+
+/*
  * Klasse: Scheduler
  * dient als ein "Mittel-Man" für die Kommunikation zwischen Tasks und Queue
  * */
