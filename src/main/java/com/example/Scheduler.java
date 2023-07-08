@@ -7,9 +7,22 @@ import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 
+/*
+ * Klasse: Scheduler
+ * dient als ein "Mittel-Man" für die Kommunikation zwischen Tasks und Queue
+ * */
+
 public class Scheduler extends AbstractBehavior<Scheduler.Message>{
 
     public interface Message {}
+    /*
+     * Nachrichten mit deren entsprechenden Funktionalitäten
+     * 1. Nachricht: Benachrichtigung, wenn ein Task zu Ende kommt
+     * 2. Nachricht: Benachrichtigung, wenn das Program startet
+     * 3. Nachricht: Benachrichtigung, wenn kein Task in Queue liegt
+     * 4. Nachricht: startet den ersten Task in Queue
+     * 5. Nachricht: Benachrichtigung, wenn ein Task schon gestartet wurde
+     * */
     public record TaskEnde(ActorRef<Task.Message> replyTo, int numberWorkersFree) implements Message{}
     public record StartProgram() implements Message{}
     public record NoElementInQueue(ActorRef<Queue.Message> msgFrom) implements Message {}
@@ -45,6 +58,13 @@ public class Scheduler extends AbstractBehavior<Scheduler.Message>{
                 .build();
     }
 
+    // Die entsprechenden Funktionen für die 5 Nachrichten
+
+    /* Funktion: beim Ende eines Tasks
+    * 1. Zähler der erledigten Tasks wird um 1 erhöht
+    * 2. Workers werden freigegeben
+    * 3. Gibt Meldung aus, wenn Zähler 20 erreicht, also wenn alle Tasks erledigt sind
+    * */
     private Behavior<Message> onTaskEnde(TaskEnde msg) {
         this.numberCalculatedWorkers += 1;
         this.freeWorkers += msg.numberWorkersFree;
@@ -55,24 +75,26 @@ public class Scheduler extends AbstractBehavior<Scheduler.Message>{
         return this;
     }
 
-
+    //Funktion: beim Programmstart wird der erste Task in Queue abgerufen
     private  Behavior<Message> onStartProgram(StartProgram msg){
         this.queueActorRef.tell(new Queue.GetFirstTask(this.getContext().getSelf()));
 
         return this;
     }
 
+    // Funktion: wenn kein Task in Queue mehr liegt
     private  Behavior<Message> onNoElementInQueue(NoElementInQueue msg){
         //TODO: stop the program cause no elements left
         return this;
-
     }
 
+    // Funktion: der erste Task in Queue wird versucht zu starten
     private  Behavior<Message> onFirstTaskInQueue(FirstTaskInQueue msg){
         msg.firstTaskInQueue.tell(new Task.TryToStart(this.getContext().getSelf(), freeWorkers));
         return this;
     }
 
+    // Funktion: wenn der Task schon gestartet werden konnte (wenn genug Workers), wird er aus Queue gelöscht
     private Behavior<Message> onTaskIsStarted(TaskIsStarted msg){
         this.freeWorkers = freeWorkers - msg.numberWorkers;
         this.queueActorRef.tell(new Queue.RemoveFirstTask(this.getContext().getSelf(), msg.repplyTo));
