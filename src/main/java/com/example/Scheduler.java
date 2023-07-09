@@ -77,7 +77,7 @@ public class Scheduler extends AbstractBehavior<Scheduler.Message>{
         this.freeWorkers += msg.numberWorkersFree;
         if (numberCalculatedWorkers == 20){
             this.getContext().getLog().info("All tasks were calculated. Press ENTER to exit");
-            //return Behaviors.stopped();
+
         }
         return this;
     }
@@ -85,13 +85,11 @@ public class Scheduler extends AbstractBehavior<Scheduler.Message>{
     //Funktion: beim Programmstart wird der erste Task in Queue abgerufen
     private  Behavior<Message> onStartProgram(StartProgram msg){
         this.queueActorRef.tell(new Queue.GetFirstTask(this.getContext().getSelf()));
-
         return this;
     }
 
     // Funktion: wenn kein Task in Queue mehr liegt
     private  Behavior<Message> onNoElementInQueue(NoElementInQueue msg){
-        //TODO: stop the program cause no elements left
         return this;
     }
 
@@ -105,8 +103,6 @@ public class Scheduler extends AbstractBehavior<Scheduler.Message>{
     private Behavior<Message> onTaskIsStarted(TaskIsStarted msg){
         this.freeWorkers = freeWorkers - msg.numberWorkers;
         this.queueActorRef.tell(new Queue.RemoveFirstTask(this.getContext().getSelf(), msg.repplyTo));
-//        if (this.freeWorkers > 0)
-//            this.getContext().getSelf().tell(new Scheduler.StartProgram());
         return this;
     }
 }
